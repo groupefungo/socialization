@@ -25,25 +25,25 @@ class WorldTest < Test::Unit::TestCase
   end
 
   def test_the_world
-    john.like!(pulp)
+    john.like!(pulp, 'like')
     john.follow!(jane)
     john.follow!(travolta)
 
-    assert john.likes?(pulp)
+    assert john.likes?(pulp, 'like')
     assert john.follows?(jane)
     assert john.follows?(travolta)
 
-    assert pulp.liked_by?(john)
+    assert pulp.liked_by?(john, 'like')
     assert travolta.followed_by?(john)
 
-    carl.like!(pulp)
-    camilo.like!(pulp)
-    assert_equal 3, pulp.likers(User).size
+    carl.like!(pulp, 'like')
+    camilo.like!(pulp, 'like')
+    assert_equal 3, pulp.likers(User, 'like').size
 
-    assert pulp.likers(User).include?(carl)
-    assert pulp.likers(User).include?(john)
-    assert pulp.likers(User).include?(camilo)
-    assert !pulp.likers(User).include?(mat)
+    assert pulp.likers(User, 'like').include?(carl)
+    assert pulp.likers(User, 'like').include?(john)
+    assert pulp.likers(User, 'like').include?(camilo)
+    assert !pulp.likers(User, 'like').include?(mat)
 
     carl.follow!(mat)
     mat.follow!(carl)
@@ -57,7 +57,7 @@ class WorldTest < Test::Unit::TestCase
     assert !carl.follows?(camilo)
 
     assert_raise Socialization::ArgumentError do
-      john.like!(travolta) # Can't like a Celeb
+      john.like!(travolta, 'like') # Can't like a Celeb
     end
 
     assert_raise Socialization::ArgumentError do
@@ -66,7 +66,7 @@ class WorldTest < Test::Unit::TestCase
 
     # You can even follow or like yourself if your ego is that big.
     assert john.follow!(john)
-    assert john.like!(john)
+    assert john.like!(john, 'like')
 
     comment = john.comments.create(:body => "I think Tami and Carl would like this movie!", :movie_id => pulp.id)
     comment.mention!(tami)

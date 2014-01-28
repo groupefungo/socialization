@@ -19,7 +19,7 @@ class ActiveRecordLikeStoreTest < Test::Unit::TestCase
 
     context "#like!" do
       should "create a Like record" do
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
         assert_match_liker @klass.last, @liker
         assert_match_likeable @klass.last, @likeable
       end
@@ -28,33 +28,33 @@ class ActiveRecordLikeStoreTest < Test::Unit::TestCase
         @klass.touch :liker
         @liker.expects(:touch).once
         @likeable.expects(:touch).never
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
       end
 
       should "touch likeable when instructed" do
         @klass.touch :likeable
         @liker.expects(:touch).never
         @likeable.expects(:touch).once
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
       end
 
       should "touch all when instructed" do
         @klass.touch :all
         @liker.expects(:touch).once
         @likeable.expects(:touch).once
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
       end
 
       should "call after like hook" do
         @klass.after_like :after_like
         @klass.expects(:after_like).once
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
       end
 
       should "call after unlike hook" do
         @klass.after_like :after_unlike
         @klass.expects(:after_unlike).once
-        @klass.like!(@liker, @likeable)
+        @klass.like!(@liker, @likeable, 'like')
       end
     end
 
@@ -63,12 +63,13 @@ class ActiveRecordLikeStoreTest < Test::Unit::TestCase
         @klass.create! do |f|
           f.liker = @liker
           f.likeable = @likeable
+          f.like_type = 'like'
         end
-        assert_true @klass.likes?(@liker, @likeable)
+        assert_true @klass.likes?(@liker, @likeable, 'like')
       end
 
       should "return false when like doesn't exist" do
-        assert_false @klass.likes?(@liker, @likeable)
+        assert_false @klass.likes?(@liker, @likeable, 'like')
       end
     end
 
@@ -76,17 +77,17 @@ class ActiveRecordLikeStoreTest < Test::Unit::TestCase
       should "return an array of likers" do
         liker1 = ImALiker.create
         liker2 = ImALiker.create
-        liker1.like!(@likeable)
-        liker2.like!(@likeable)
-        assert_equal [liker1, liker2], @klass.likers(@likeable, liker1.class)
+        liker1.like!(@likeable, 'like')
+        liker2.like!(@likeable, 'like')
+        assert_equal [liker1, liker2], @klass.likers(@likeable, liker1.class, 'like')
       end
 
       should "return an array of liker ids when plucking" do
         liker1 = ImALiker.create
         liker2 = ImALiker.create
-        liker1.like!(@likeable)
-        liker2.like!(@likeable)
-        assert_equal [liker1.id, liker2.id], @klass.likers(@likeable, liker1.class, :pluck => :id)
+        liker1.like!(@likeable, 'like')
+        liker2.like!(@likeable, 'like')
+        assert_equal [liker1.id, liker2.id], @klass.likers(@likeable, liker1.class, 'like', :pluck => :id)
       end
     end
 
@@ -94,35 +95,35 @@ class ActiveRecordLikeStoreTest < Test::Unit::TestCase
       should "return an array of likers" do
         likeable1 = ImALikeable.create
         likeable2 = ImALikeable.create
-        @liker.like!(likeable1)
-        @liker.like!(likeable2)
-        assert_equal [likeable1, likeable2], @klass.likeables(@liker, likeable1.class)
+        @liker.like!(likeable1, 'like')
+        @liker.like!(likeable2, 'like')
+        assert_equal [likeable1, likeable2], @klass.likeables(@liker, likeable1.class, 'like')
       end
 
       should "return an array of liker ids when plucking" do
         likeable1 = ImALikeable.create
         likeable2 = ImALikeable.create
-        @liker.like!(likeable1)
-        @liker.like!(likeable2)
-        assert_equal [likeable1.id, likeable2.id], @klass.likeables(@liker, likeable1.class, :pluck => :id)
+        @liker.like!(likeable1, 'like')
+        @liker.like!(likeable2, 'like')
+        assert_equal [likeable1.id, likeable2.id], @klass.likeables(@liker, likeable1.class, 'like', :pluck => :id)
       end
     end
 
     context "#remove_likers" do
       should "delete all likers relationships for a likeable" do
-        @liker.like!(@likeable)
-        assert_equal 1, @likeable.likers(@liker.class).count
+        @liker.like!(@likeable, 'like')
+        assert_equal 1, @likeable.likers(@liker.class, 'like').count
         @klass.remove_likers(@likeable)
-        assert_equal 0, @likeable.likers(@liker.class).count
+        assert_equal 0, @likeable.likers(@liker.class, 'like').count
       end
     end
 
     context "#remove_likeables" do
       should "delete all likeables relationships for a liker" do
-        @liker.like!(@likeable)
-        assert_equal 1, @liker.likeables(@likeable.class).count
+        @liker.like!(@likeable, 'like')
+        assert_equal 1, @liker.likeables(@likeable.class, 'like').count
         @klass.remove_likeables(@liker)
-        assert_equal 0, @liker.likeables(@likeable.class).count
+        assert_equal 0, @liker.likeables(@likeable.class, 'like').count
       end
     end
 

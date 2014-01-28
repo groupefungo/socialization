@@ -26,31 +26,31 @@ module Socialization
       #
       # @param [Likeable] likeable the object to be liked.
       # @return [Boolean]
-      def like!(likeable)
+      def like!(likeable, like_type)
         raise Socialization::ArgumentError, "#{likeable} is not likeable!"  unless likeable.respond_to?(:is_likeable?) && likeable.is_likeable?
-        Socialization.like_model.like!(self, likeable)
+        Socialization.like_model.like!(self, likeable, like_type)
       end
 
       # Delete a {Like like} relationship.
       #
       # @param [Likeable] likeable the object to unlike.
       # @return [Boolean]
-      def unlike!(likeable)
+      def unlike!(likeable, like_type)
         raise Socialization::ArgumentError, "#{likeable} is not likeable!" unless likeable.respond_to?(:is_likeable?) && likeable.is_likeable?
-        Socialization.like_model.unlike!(self, likeable)
+        Socialization.like_model.unlike!(self, likeable, like_type)
       end
 
       # Toggles a {Like like} relationship.
       #
       # @param [Likeable] likeable the object to like/unlike.
       # @return [Boolean]
-      def toggle_like!(likeable)
+      def toggle_like!(likeable, like_type)
         raise Socialization::ArgumentError, "#{likeable} is not likeable!" unless likeable.respond_to?(:is_likeable?) && likeable.is_likeable?
-        if likes?(likeable)
-          unlike!(likeable)
+        if likes?(likeable, like_type)
+          unlike!(likeable, like_type)
           false
         else
-          like!(likeable)
+          like!(likeable, like_type)
           true
         end
       end
@@ -59,9 +59,9 @@ module Socialization
       #
       # @param [Likeable] likeable the {Likeable} object to test against.
       # @return [Boolean]
-      def likes?(likeable)
+      def likes?(likeable, like_type)
         raise Socialization::ArgumentError, "#{likeable} is not likeable!" unless likeable.respond_to?(:is_likeable?) && likeable.is_likeable?
-        Socialization.like_model.likes?(self, likeable)
+        Socialization.like_model.likes?(self, likeable, like_type)
       end
 
       # Returns all the likeables of a certain type that are liked by self
@@ -69,8 +69,8 @@ module Socialization
       # @params [Likeable] klass the type of {Likeable} you want
       # @params [Hash] opts a hash of options
       # @return [Array<Likeable, Numeric>] An array of Likeable objects or IDs
-      def likeables(klass, opts = {})
-        Socialization.like_model.likeables(self, klass, opts)
+      def likeables(klass, like_type, opts = {})
+        Socialization.like_model.likeables(self, klass, like_type, opts)
       end
       alias :likees :likeables
 
@@ -79,8 +79,8 @@ module Socialization
       # @params [Likeable] klass the type of {Likeable} you want
       # @params [Hash] opts a hash of options
       # @return ActiveRecord::Relation
-      def likeables_relation(klass, opts = {})
-        Socialization.like_model.likeables_relation(self, klass, opts)
+      def likeables_relation(klass, like_type, opts = {})
+        Socialization.like_model.likeables_relation(self, klass, like_type, opts)
       end
       alias :likees_relation :likeables_relation
     end

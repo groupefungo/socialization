@@ -25,25 +25,25 @@ module Socialization
       # Specifies if self is liked by a {Liker} object.
       #
       # @return [Boolean]
-      def liked_by?(liker)
+      def liked_by?(liker, like_type)
         raise Socialization::ArgumentError, "#{liker} is not liker!"  unless liker.respond_to?(:is_liker?) && liker.is_liker?
-        Socialization.like_model.likes?(liker, self)
+        Socialization.like_model.likes?(liker, self, like_type)
       end
 
       # Returns an array of {Liker}s liking self.
       #
       # @param [Class] klass the {Liker} class to be included. e.g. `User`
       # @return [Array<Liker, Numeric>] An array of Liker objects or IDs
-      def likers(klass, opts = {})
-        Socialization.like_model.likers(self, klass, opts)
+      def likers(klass, like_type, opts = {})
+        Socialization.like_model.likers(self, klass, like_type, opts)
       end
 
       # Returns a scope of the {Liker}s liking self.
       #
       # @param [Class] klass the {Liker} class to be included in the scope. e.g. `User`
       # @return ActiveRecord::Relation
-      def likers_relation(klass, opts = {})
-        Socialization.like_model.likers_relation(self, klass, opts)
+      def likers_relation(klass, like_type, opts = {})
+        Socialization.like_model.likers_relation(self, klass, like_type, opts)
       end
 
     end

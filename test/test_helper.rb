@@ -124,6 +124,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer :liker_id
     t.string  :likeable_type
     t.integer :likeable_id
+    t.string :like_type
     t.datetime :created_at
   end
 

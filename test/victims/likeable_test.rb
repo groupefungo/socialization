@@ -21,33 +21,33 @@ class LikeableTest < Test::Unit::TestCase
 
     context "#liked_by?" do
       should "not accept non-likers" do
-        assert_raise(Socialization::ArgumentError) { @likeable.liked_by?(:foo) }
+        assert_raise(Socialization::ArgumentError) { @likeable.liked_by?(:foo, :like_type) }
       end
 
       should "call $Like.likes?" do
-        $Like.expects(:likes?).with(@liker, @likeable).once
-        @likeable.liked_by?(@liker)
+        $Like.expects(:likes?).with(@liker, @likeable, :like_type).once
+        @likeable.liked_by?(@liker, :like_type)
       end
     end
 
     context "#likers" do
       should "call $Like.likers" do
-        $Like.expects(:likers).with(@likeable, @liker.class, { :foo => :bar })
-        @likeable.likers(@liker.class, { :foo => :bar })
+        $Like.expects(:likers).with(@likeable, @liker.class, :like_type, { :foo => :bar })
+        @likeable.likers(@liker.class, :like_type, { :foo => :bar })
       end
     end
 
     context "#likers_relation" do
       should "call $Like.likers_relation" do
-        $Like.expects(:likers_relation).with(@likeable, @liker.class, { :foo => :bar })
-        @likeable.likers_relation(@liker.class, { :foo => :bar })
+        $Like.expects(:likers_relation).with(@likeable, @liker.class, :like_type, { :foo => :bar })
+        @likeable.likers_relation(@liker.class, :like_type, { :foo => :bar })
       end
     end
 
     context "deleting a likeable" do
       setup do
         @liker = ImALiker.create
-        @liker.like!(@likeable)
+        @liker.like!(@likeable, :like_type)
       end
 
       should "remove like relationships" do

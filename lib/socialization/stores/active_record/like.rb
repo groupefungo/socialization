@@ -18,12 +18,17 @@ module Socialization
         :likeable_id   => likeable.id)
       }
 
+      scope :with_like_type, lambda {|like_type| where(
+          like_type: like_type
+      )}
+
       class << self
-        def like!(liker, likeable)
-          unless likes?(liker, likeable)
+        def like!(liker, likeable, like_type)
+          unless likes?(liker, likeable, like_type)
             self.create! do |like|
               like.liker = liker
               like.likeable = likeable
+              like.like_type = like_type
             end
             call_after_create_hooks(liker, likeable)
             true
@@ -32,9 +37,9 @@ module Socialization
           end
         end
 
-        def unlike!(liker, likeable)
-          if likes?(liker, likeable)
-            like_for(liker, likeable).destroy_all
+        def unlike!(liker, likeable, like_type)
+          if likes?(liker, likeable, like_type)
+            like_for(liker, likeable, like_type).destroy_all
             call_after_destroy_hooks(liker, likeable)
             true
           else
@@ -42,17 +47,18 @@ module Socialization
           end
         end
 
-        def likes?(liker, likeable)
-          !like_for(liker, likeable).empty?
+        def likes?(liker, likeable, like_type)
+          !like_for(liker, likeable, like_type).empty?
         end
 
         # Returns an ActiveRecord::Relation of all the likers of a certain type that are liking  likeable
-        def likers_relation(likeable, klass, opts = {})
+        def likers_relation(likeable, klass, like_type, opts = {})
           rel = klass.where(:id =>
             self.select(:liker_id).
               where(:liker_type => klass.table_name.classify).
               where(:likeable_type => likeable.class.to_s).
-              where(:likeable_id => likeable.id)
+              where(:likeable_id => likeable.id) .
+              where(like_type: like_type)
           )
 
           if opts[:pluck]
@@ -63,8 +69,8 @@ module Socialization
         end
 
         # Returns all the likers of a certain type that are liking  likeable
-        def likers(likeable, klass, opts = {})
-          rel = likers_relation(likeable, klass, opts)
+        def likers(likeable, klass, like_type,opts = {})
+          rel = likers_relation(likeable, klass, like_type, opts)
           if rel.is_a?(ActiveRecord::Relation)
             rel.to_a
           else
@@ -73,12 +79,13 @@ module Socialization
         end
 
         # Returns an ActiveRecord::Relation of all the likeables of a certain type that are liked by liker
-        def likeables_relation(liker, klass, opts = {})
+        def likeables_relation(liker, klass, like_type, opts = {})
           rel = klass.where(:id =>
             self.select(:likeable_id).
               where(:likeable_type => klass.table_name.classify).
               where(:liker_type => liker.class.to_s).
-              where(:liker_id => liker.id)
+              where(:liker_id => liker.id).
+              where(like_type: like_type)
           )
 
           if opts[:pluck]
@@ -89,8 +96,8 @@ module Socialization
         end
 
         # Returns all the likeables of a certain type that are liked by liker
-        def likeables(liker, klass, opts = {})
-          rel = likeables_relation(liker, klass, opts)
+        def likeables(liker, klass, like_type, opts = {})
+          rel = likeables_relation(liker, klass, like_type, opts)
           if rel.is_a?(ActiveRecord::Relation)
             rel.to_a
           else
@@ -111,8 +118,8 @@ module Socialization
         end
 
       private
-        def like_for(liker, likeable)
-          liked_by(liker).liking( likeable)
+        def like_for(liker, likeable, like_type)
+          liked_by(liker).liking(likeable).with_like_type(like_type)
         end
       end # class << self
 
