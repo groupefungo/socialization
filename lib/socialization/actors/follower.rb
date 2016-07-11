@@ -83,6 +83,12 @@ module Socialization
         Socialization.follow_model.followables_relation(self, klass, opts)
       end
       alias :followees_relation :followables_relation
+
+      def not_followed_relation(klass, opts = {})
+        Socialization.follow_model.not_followed_relation(self, klass, opts)
+      end
+      alias :not_followees_relation :not_followed_relation
+
     end
   end
 end

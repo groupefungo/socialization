@@ -5,18 +5,18 @@ module Socialization
       extend Socialization::Stores::Mixins::Follow
       extend Socialization::ActiveRecordStores::Mixins::Base
 
-      belongs_to :follower,   :polymorphic => true
+      belongs_to :follower, :polymorphic => true
       belongs_to :followable, :polymorphic => true
 
       scope :followed_by, lambda { |follower| where(
-        :follower_type   => follower.class.table_name.classify,
-        :follower_id     => follower.id)
-      }
+                            :follower_type => follower.class.table_name.classify,
+                            :follower_id => follower.id)
+                        }
 
-      scope :following,   lambda { |followable| where(
-        :followable_type => followable.class.table_name.classify,
-        :followable_id   => followable.id)
-      }
+      scope :following, lambda { |followable| where(
+                          :followable_type => followable.class.table_name.classify,
+                          :followable_id => followable.id)
+                      }
 
       class << self
         def follow!(follower, followable)
@@ -49,10 +49,10 @@ module Socialization
         # Returns an ActiveRecord::Relation of all the followers of a certain type that are following followable
         def followers_relation(followable, klass, opts = {})
           rel = klass.where(:id =>
-            self.select(:follower_id).
-              where(:follower_type => klass.table_name.classify).
-              where(:followable_type => followable.class.to_s).
-              where(:followable_id => followable.id)
+                                self.select(:follower_id).
+                                    where(:follower_type => klass.table_name.classify).
+                                    where(:followable_type => followable.class.to_s).
+                                    where(:followable_id => followable.id)
           )
 
           if opts[:pluck]
@@ -75,11 +75,27 @@ module Socialization
         # Returns an ActiveRecord::Relation of all the followables of a certain type that are followed by follower
         def followables_relation(follower, klass, opts = {})
           rel = klass.where(:id =>
-            self.select(:followable_id).
-              where(:followable_type => klass.table_name.classify).
-              where(:follower_type => follower.class.to_s).
-              where(:follower_id => follower.id)
+                                self.select(:followable_id).
+                                    where(:followable_type => klass.table_name.classify).
+                                    where(:follower_type => follower.class.to_s).
+                                    where(:follower_id => follower.id)
           )
+
+          if opts[:pluck]
+            rel.pluck(opts[:pluck])
+          else
+            rel
+          end
+        end
+
+        def not_followed_relation(follower, klass, opts = {})
+          rel = klass.where.not(:id =>
+                                    self.select(:followable_id).
+                                        where(:followable_type => klass.table_name.classify).
+                                        where(:follower_type => follower.class.to_s).
+                                        where(:follower_id => follower.id)
+
+          ).where.not(:id => follower.id).order("RAND()").limit(opts[:limit]|| 5)
 
           if opts[:pluck]
             rel.pluck(opts[:pluck])
@@ -101,16 +117,16 @@ module Socialization
         # Remove all the followers for followable
         def remove_followers(followable)
           self.where(:followable_type => followable.class.name.classify).
-               where(:followable_id => followable.id).destroy_all
+              where(:followable_id => followable.id).destroy_all
         end
 
         # Remove all the followables for follower
         def remove_followables(follower)
           self.where(:follower_type => follower.class.name.classify).
-               where(:follower_id => follower.id).destroy_all
+              where(:follower_id => follower.id).destroy_all
         end
 
-      private
+        private
         def follow_for(follower, followable)
           followed_by(follower).following(followable)
         end
