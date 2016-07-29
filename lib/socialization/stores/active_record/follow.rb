@@ -89,7 +89,7 @@ module Socialization
         end
 
         def not_followed_relation(follower, klass, opts = {})
-          rel = klass.where.not(:id =>
+          rel = klass.joins(:followees).where.not(:id =>
                                     self.select(:followable_id).
                                         where(:followable_type => klass.table_name.classify).
                                         where(:follower_type => follower.class.to_s).
